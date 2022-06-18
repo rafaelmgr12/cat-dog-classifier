@@ -1,6 +1,8 @@
-from PIL import Image
 import numpy as np
-import tensoflow as tf
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img
+from tensorflow.keras.preprocessing.image import img_to_array
 
 
 
@@ -9,13 +11,13 @@ def process_image(image,Image_Size=(128,128)):
     '''
     Make an image ready-to-use by VGG19
     '''
-    im=Image.open(image)
-    im=im.resize(Image_Size)
-    im=np.expand_dims(im,axis=0)
-    im=np.array(im)
-    im=im/255
+    # convert the image pixels to a numpy array
+    image = img_to_array(image)
+    # reshape data for the model
+    image = image.reshape((1, image.shape[0], image.shape[1], image.shape[2]))
+    # prepare the image for the VGG model
 
-    return image
+    return image/255.0
 
 def predict_class(image):
     model = tf.keras.models.load_model('./models/model1_catsVSdogs.h5', compile=False)
@@ -27,7 +29,7 @@ def predict_class(image):
         1:'dog'
     }
     # predict the probability across all output classes
-    prediction = model.predict(image)
+    probability = model.predict(image)
+    prediction = np.argmax(probability, axis=-1)
 
-
-    return prediction, results[prediction]
+    return results[prediction[0]],probability[0][0]
